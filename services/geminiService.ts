@@ -2,24 +2,12 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Transaction, BankAccount } from "../types";
 
-const getAI = () => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey || apiKey === '') {
-    console.warn("未偵測到 API_KEY，AI 功能將受限。");
-    return null;
-  }
-  return new GoogleGenAI({ apiKey });
-};
+// According to guidelines, create a new instance before making an API call to ensure it uses the latest API key.
+// Always use new GoogleGenAI({ apiKey: process.env.API_KEY }) directly.
 
 export const analyzeFinancialStatus = async (transactions: Transaction[], accounts: BankAccount[]) => {
-  const ai = getAI();
-  if (!ai) {
-    return {
-      summary: "目前為離線模式，無法使用 AI 分析功能。",
-      tips: ["請於 GitHub Secrets 設定 API_KEY 以啟用功能"],
-      healthScore: 0
-    };
-  }
+  // Fix: Initialize GoogleGenAI with named apiKey parameter using process.env.API_KEY directly.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
   const recentTransactions = transactions.slice(-10).map(t => `${t.date}: ${t.type} ${t.amount} (${t.category}) - ${t.note}`).join('\n');
@@ -34,8 +22,9 @@ export const analyzeFinancialStatus = async (transactions: Transaction[], accoun
   `;
 
   try {
+    // Fix: Use ai.models.generateContent directly with model name and contents.
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview", // 依規範使用 Pro Preview 模型
+      model: "gemini-3-pro-preview", // Use gemini-3-pro-preview for complex reasoning tasks.
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -51,7 +40,9 @@ export const analyzeFinancialStatus = async (transactions: Transaction[], accoun
       },
     });
 
-    return JSON.parse(response.text || '{}');
+    // Fix: Access text directly as a property and trim it.
+    const jsonStr = response.text?.trim() || '{}';
+    return JSON.parse(jsonStr);
   } catch (error) {
     console.error("Gemini 財務分析失敗:", error);
     return {
@@ -63,8 +54,8 @@ export const analyzeFinancialStatus = async (transactions: Transaction[], accoun
 };
 
 export const getFinancialHoroscope = async (zodiacSign: string) => {
-  const ai = getAI();
-  if (!ai) return null;
+  // Fix: Initialize GoogleGenAI with named apiKey parameter using process.env.API_KEY directly.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const prompt = `
     請作為一名專業的占星術與理財專家，為 ${zodiacSign} 提供今日的財運預測。
@@ -93,7 +84,9 @@ export const getFinancialHoroscope = async (zodiacSign: string) => {
       },
     });
 
-    return JSON.parse(response.text || '{}');
+    // Fix: Access text directly as a property and trim it.
+    const jsonStr = response.text?.trim() || '{}';
+    return JSON.parse(jsonStr);
   } catch (error) {
     console.error("Gemini 財運預測失敗:", error);
     return null;
