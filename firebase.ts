@@ -1,11 +1,8 @@
 
-// Fix: Separate type and value imports to improve compatibility with some TypeScript configurations and resolve "no exported member" errors.
-import { initializeApp, getApps } from "firebase/app";
-import type { FirebaseApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import type { Auth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import type { Firestore } from "firebase/firestore";
+// Fix: Consolidate type and value imports to resolve "no exported member" errors which can occur in some TypeScript environments when importing from the same path multiple times.
+import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
 
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
